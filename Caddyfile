@@ -1,0 +1,55 @@
+# ==========================================
+# Caddyfile for ifro.pl
+# Production TLS, Brotli/Zstandard & Caching
+# ==========================================
+
+{
+	email admin@ifro.pl
+	# Optional Cloudflare DNS challenge or standard HTTP/TLS challenge
+}
+
+# Redirect www to apex domain
+www.ifro.pl {
+	redir https://ifro.pl{uri} permanent
+}
+
+ifro.pl {
+	# Encode responses using modern compression
+	encode zstd gzip
+
+	# Security Headers
+	header {
+		# Enable HTTP Strict Transport Security (HSTS)
+		Strict-Transport-Security "max-age=31536000; includeSubDomains; preload"
+		# Prevent MIME type sniffing
+		X-Content-Type-Options "nosniff"
+		# Prevent clickjacking
+		X-Frame-Options "SAMEORIGIN"
+		# Control Referrer information
+		Referrer-Policy "strict-origin-when-cross-origin"
+		# Permissions policy
+		Permissions-Policy "camera=(), microphone=(), geolocation=()"
+		# Remove server identifier
+		-Server
+	}
+
+	# Cache Next.js Immutable Static Assets
+	@static {
+		path /_next/static/*
+	}
+	header @static Cache-Control "public, max-age=31536000, immutable"
+
+	# Cache Public Assets
+	@public {
+		path /ads.txt /favicon.ico /robots.txt /sitemap.xml
+	}
+	header @public Cache-Control "public, max-age=86400, must-revalidate"
+
+	# Reverse proxy to Next.js Standalone container
+	reverse_proxy web:3000 {
+		header_up Host {host}
+		header_up X-Real-IP {remote_host}
+		header_up X-Forwarded-For {remote_host}
+		header_up X-Forwarded-Proto {scheme}
+	}
+}
