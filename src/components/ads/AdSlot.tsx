@@ -2,18 +2,21 @@
 
 import { useTranslations } from 'next-intl';
 
-export type AdFormat = 
-  | 'leaderboard'     // 728x90
-  | 'billboard'       // 970x250
-  | 'rectangle'       // 300x250
-  | 'half-page'       // 300x600
-  | 'skyscraper'      // 160x600
-  | 'mobile-banner'   // 320x50
-  | 'mobile-large'    // 320x100
-  | 'responsive';     // fluid width, reserved height
+export type AdFormat =
+  | 'leaderboard' // 728x90
+  | 'billboard' // 970x250
+  | 'rectangle' // 300x250
+  | 'half-page' // 300x600
+  | 'skyscraper' // 160x600
+  | 'mobile-banner' // 320x50
+  | 'mobile-large' // 320x100
+  | 'responsive'; // fluid width, reserved height
 
 interface AdSlotProps {
+  /** Local place name used for markup only. Not an AdSense unit id. */
   slotId: string;
+  /** Real AdSense data-ad-slot unit id. Required to render outside preview. */
+  adSlot?: string;
   format: AdFormat;
   className?: string;
   label?: string;
@@ -30,35 +33,43 @@ const FORMAT_DIMENSIONS: Record<AdFormat, { minH: string; maxW?: string; labelSi
   responsive: { minH: 'min-h-[90px] sm:min-h-[250px]', labelSize: 'Responsive In-Content Ad' },
 };
 
+const isRealAdUnitId = (value?: string) => Boolean(value && /^\d{8,}$/.test(value.trim()));
+
 export function AdSlot({
   slotId,
+  adSlot,
   format,
   className = '',
   label,
 }: AdSlotProps) {
   const t = useTranslations('ads');
-  const isPreview = process.env.NEXT_PUBLIC_AD_PREVIEW === 'true' || process.env.NODE_ENV === 'development';
+  const isPreview = process.env.NEXT_PUBLIC_AD_PREVIEW === 'true';
+  const unitId = adSlot?.trim() || (isRealAdUnitId(slotId) ? slotId.trim() : '');
+  const hasRealAdUnit = isRealAdUnitId(unitId);
+
+  if (!isPreview && !hasRealAdUnit) {
+    return null;
+  }
+
   const config = FORMAT_DIMENSIONS[format];
 
   return (
     <div
       className={`ad-slot-wrapper w-full flex flex-col items-center justify-center my-6 p-6 ${config.minH} ${className}`}
-      data-ad-slot={slotId}
+      data-ad-slot={unitId || slotId}
       data-ad-format={format}
     >
-      {/* Strict 24px safety buffer is enforced by .ad-slot-wrapper css (margin & padding >= 24px) */}
       <span className="ad-label" aria-hidden="true">
         {label || t('advertisement')}
       </span>
 
-      {/* Wireframe placeholder to guarantee CLS = 0.000 */}
       <div
         className={`w-full ${config.maxW || 'w-full'} flex items-center justify-center border border-dashed border-border-subtle/80 bg-surface/80 rounded-md py-4 px-2 text-center text-xs font-mono text-content-muted`}
       >
-        {isPreview ? (
+        {isPreview && !hasRealAdUnit ? (
           <span className="text-[11px] text-content-muted">{label || t('advertisement')}</span>
         ) : (
-          <div id={`ad-container-${slotId}`} className="w-full h-full" />
+          <div id={`ad-container-${slotId}`} className="w-full h-full" data-ad-unit={unitId || undefined} />
         )}
       </div>
     </div>

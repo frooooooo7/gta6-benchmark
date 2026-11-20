@@ -8,31 +8,60 @@ interface StickyAdRailsProps {
   children: React.ReactNode;
 }
 
-function AdRail({ side }: { side: 'left' | 'right' }) {
+const isRealAdUnitId = (value?: string) => Boolean(value && /^\d{8,}$/.test(value.trim()));
+
+const isPreview = () => process.env.NEXT_PUBLIC_AD_PREVIEW === 'true';
+
+function AdRail({ side, unitId }: { side: 'left' | 'right'; unitId?: string }) {
   const t = useTranslations('ads');
+  const preview = isPreview();
+  const hasUnit = isRealAdUnitId(unitId);
+
+  if (!preview && !hasUnit) {
+    return null;
+  }
 
   return (
     <aside
       aria-label={side === 'left' ? 'Sidebar advertisement left' : 'Sidebar advertisement right'}
       className="hidden xl:flex sticky top-20 h-[min(640px,calc(100vh-6rem))] flex-col overflow-hidden rounded-lg border border-white/10 bg-black/55"
-      data-ad-slot={`rail-${side}`}
+      data-ad-slot={unitId || `rail-${side}`}
       data-ad-format="skyscraper"
     >
       <p className="border-b border-white/10 py-3 text-center text-[10px] font-semibold uppercase tracking-[0.16em] text-white/70">
         {t('advertisement')}
       </p>
-      <div id={`ad-container-rail-${side}`} className="flex-1" />
+      {preview && !hasUnit ? (
+        <div className="flex flex-1 items-center justify-center px-2 text-center text-[10px] uppercase tracking-wide text-white/50">
+          {t('advertisement')}
+        </div>
+      ) : (
+        <div id={`ad-container-rail-${side}`} className="flex-1" data-ad-unit={unitId} />
+      )}
     </aside>
   );
 }
 
 export function StickyAdRails({ children }: StickyAdRailsProps) {
+  const leftUnit = process.env.NEXT_PUBLIC_ADSENSE_SLOT_RAIL_LEFT?.trim();
+  const rightUnit = process.env.NEXT_PUBLIC_ADSENSE_SLOT_RAIL_RIGHT?.trim();
+  const preview = isPreview();
+  const showLeft = preview || isRealAdUnitId(leftUnit);
+  const showRight = preview || isRealAdUnitId(rightUnit);
+  const showRails = showLeft || showRight;
+
   return (
     <div className="relative w-full">
-      <div className="mx-auto grid w-full max-w-[1180px] grid-cols-1 items-start gap-4 px-3 py-4 sm:px-5 lg:py-6 xl:grid-cols-[148px_minmax(0,1fr)_148px]">
-        <AdRail side="left" />
-        <div className="min-w-0">{children}</div>
-        <AdRail side="right" />
+      <div
+        className={`mx-auto grid w-full max-w-[1180px] items-start gap-4 px-3 py-4 sm:px-5 lg:py-6 ${
+          showRails
+            ? 'grid-cols-1 xl:grid-cols-[148px_minmax(0,1fr)_148px]'
+            : 'grid-cols-1'
+        }`}
+      >
+        {showLeft ? <AdRail side="left" unitId={leftUnit} /> : showRails ? <div className="hidden xl:block" /> : null}
+        <div className="min-w-0 w-full">{children}</div>
+        {showRight ? <AdRail side="right" unitId={rightUnit} /> : showRails ? <div className="hidden xl:block" /> : null}
       </div>
       <MobileStickyBottomBanner />
     </div>
@@ -42,8 +71,13 @@ export function StickyAdRails({ children }: StickyAdRailsProps) {
 export function MobileStickyBottomBanner() {
   const [isDismissed, setIsDismissed] = useState(false);
   const t = useTranslations('ads');
+  const unitId = process.env.NEXT_PUBLIC_ADSENSE_SLOT_MOBILE?.trim();
+  const preview = isPreview();
+  const hasUnit = isRealAdUnitId(unitId);
 
-  if (isDismissed) return null;
+  if (isDismissed || (!preview && !hasUnit)) {
+    return null;
+  }
 
   return (
     <div
@@ -60,10 +94,13 @@ export function MobileStickyBottomBanner() {
         >
           <X className="h-3.5 w-3.5" />
         </button>
-        <span className="text-[10px] font-semibold uppercase tracking-[0.16em] text-white/70">
-          {t('advertisement')}
-        </span>
-        <div id="ad-container-mobile-anchor" className="sr-only" />
+        {preview && !hasUnit ? (
+          <span className="text-[10px] font-semibold uppercase tracking-[0.16em] text-white/70">
+            {t('advertisement')}
+          </span>
+        ) : (
+          <div id="ad-container-mobile-anchor" className="h-full w-full" data-ad-unit={unitId} />
+        )}
       </div>
     </div>
   );

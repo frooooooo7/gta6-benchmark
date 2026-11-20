@@ -138,8 +138,8 @@ export default async function TermsPage({
             </h2>
             <p>
               {isPl
-                ? 'Z kalkulatora można korzystać osobiście i można wysłać dalej link do wybranego zestawu. Hurtowe pobieranie całej bazy wymaga wcześniejszej zgody. Kontakt: froispro6969@gmail.com.'
-                : 'You may use the calculator yourself and you may share a link to a chosen build. Bulk downloading of the whole catalog needs prior consent. Contact: froispro6969@gmail.com.'}
+                ? 'Z kalkulatora można korzystać osobiście i można wysłać dalej link do wybranego zestawu. Hurtowe pobieranie całej bazy wymaga wcześniejszej zgody. Kontakt: contact@ifro.pl.'
+                : 'You may use the calculator yourself and you may share a link to a chosen build. Bulk downloading of the whole catalog needs prior consent. Contact: contact@ifro.pl.'}
             </p>
           </section>
         </div>
