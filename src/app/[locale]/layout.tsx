@@ -114,6 +114,12 @@ export default async function LocaleLayout({
             `,
           }}
         />
+        {/* Google AdSense */}
+        <script
+          async
+          src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-8402255762825056"
+          crossOrigin="anonymous"
+        />
       </head>
       <body className="min-h-screen bg-vice text-content-primary antialiased font-sans selection:bg-accent-teal/20 selection:text-white">
         <NextIntlClientProvider locale={locale} messages={messages}>

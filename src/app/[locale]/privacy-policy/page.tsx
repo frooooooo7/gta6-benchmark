@@ -101,9 +101,6 @@ export default async function PrivacyPolicyPage({
               <a className="font-semibold text-content-primary underline" href="mailto:froispro6969@gmail.com">
                 froispro6969@gmail.com
               </a>
-              {isPl
-                ? '. Imienia, nazwiska i adresu zamieszkania serwis nie publikuje.'
-                : '. The site does not publish a name or a home address.'}
             </p>
           </section>
 
